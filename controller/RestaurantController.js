@@ -1,4 +1,4 @@
-const MenuItemModel = require("../model/MenuItemModel");
+const MenuItemModel = require("../model/MenuitemModel");
 const RestaurantModel = require("../model/RestaurantModel");
 
 const RestaurantController = {
