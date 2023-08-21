@@ -1,4 +1,4 @@
-const MenuItemModel = require("../model/Menuitem");
+const MenuItemModel = require("../model/MenuItemModel");
 const RestaurantModel = require("../model/RestaurantModel");
 
 const RestaurantController = {
@@ -35,106 +35,72 @@ const RestaurantController = {
     });
   },
   filter: async (request, response) => {
-    try {
-      const { sort, location, cuisine } = request.body;
-  
-      let filterData = {};
-      if (location !== undefined) filterData["location_id"] = location;
-      if (cuisine.length !== 0) filterData["cuisine_id"] = { $in: cuisine };
-  
-      const sortOption = {};
-      if (sort === "asc") {
-        sortOption.min_price = 1;
-      } else if (sort === "desc") {
-        sortOption.min_price = -1;
-      }
-  
-      const result = await RestaurantModel.find(filterData).sort(sortOption);
-  
-      response.send({
-        success: true,
-        result,
-      });
-    } catch (error) {
-      console.error("Error in filter:", error);
-      response.status(500).send({ success: false, error: "Internal server error" });
-    }
+    let {  sort, location, cuisine } = request.body;
+    //location
+    //cuisine
+    //cost for 2
+    // sort (default acs)
+    // page
+    let filterData = {};
+
+    if (location !== undefined) filterData["location_id"] = location;
+    if (cuisine.length !== 0) filterData["cuisine_id"] = { $in: cuisine };
+
+    let result = await RestaurantModel.find(filterData).sort({
+      min_price: sort,
+    });
+    response.send({
+      call: true,
+      result,
+    });
   },
-  
   filterPrice: async (req, res) => {
+    const { priceRange } = req.query;
+
+    let minPrice, maxPrice;
+    // Calculate min and max prices based on selected price range
+    if (priceRange === "0-500") {
+      minPrice = 0;
+      maxPrice = 500;
+    } else if (priceRange === "500-1000") {
+      minPrice = 501;
+      maxPrice = 1000;
+    } else if (priceRange === "1000-1500") {
+      minPrice = 1001;
+      maxPrice = 1500;
+    } else if (priceRange === "1500-2000") {
+      minPrice = 1501;
+      maxPrice = 2000;
+    } else if (priceRange === "2000+") {
+      minPrice = 2001;
+      maxPrice = 5000;
+    }
+
     try {
-      const { priceRange } = req.query;
-  
-      let minPrice, maxPrice;
-      // Calculate min and max prices based on selected price range
-      if (priceRange === "0-500") {
-        minPrice = 0;
-        maxPrice = 500;
-      } else if (priceRange === "500-1000") {
-        minPrice = 501;
-        maxPrice = 1000;
-      } else if (priceRange === "1000-1500") {
-        minPrice = 1001;
-        maxPrice = 1500;
-      } else if (priceRange === "1500-2000") {
-        minPrice = 1501;
-        maxPrice = 2000;
-      } else if (priceRange === "2000+") {
-        minPrice = 2001;
-        maxPrice = 5000;
-      }
-  
       const products = await RestaurantModel.find({
         min_price: { $gte: minPrice, $lte: maxPrice },
       });
       res.send({
-        success: true,
+        call: true,
         products,
       });
     } catch (error) {
-      console.error("Error in filterPrice:", error);
-      res.status(500).send({ success: false, error: "Internal server error" });
+      res.status(500).send({ error: "Internal server error" });
     }
   },
-  
 
   Pagination: async (req, res) => {
     try {
-      const { sort, location, cuisine, page, itemsPerPage } = req.body;
-  
-      let filterData = {};
-      if (location !== undefined) filterData["location_id"] = location;
-      if (cuisine.length !== 0) filterData["cuisine_id"] = { $in: cuisine };
-  
-      const sortOption = {};
-      if (sort === "asc") {
-        sortOption.min_price = 1;
-      } else if (sort === "desc") {
-        sortOption.min_price = -1;
-      }
-  
-      const totalCount = await RestaurantModel.countDocuments(filterData);
-      const totalPages = Math.ceil(totalCount / itemsPerPage);
-  
-      const skip = (page - 1) * itemsPerPage;
-      const result = await RestaurantModel.find(filterData)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(itemsPerPage);
-  
+      const products = await RestaurantModel.find();
       res.send({
-        success: true,
-        result,
-        page,
-        totalPages,
+        call: true,
+        products,
       });
     } catch (error) {
-      console.error("Error in Pagination:", error);
-      res.status(500).send({ success: false, error: "Internal server error" });
+      res.status(500).send({ error: "Internal server error" });
     }
   },
-  
-  
-}
-  
+};
+
 module.exports = RestaurantController;
+
